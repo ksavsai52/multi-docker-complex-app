@@ -1,0 +1,20 @@
+sudo: required
+services:
+    - docker
+
+before_install:
+    - docker build -t ksav/react-test -f ./client/Dockerfile.dev ./client
+
+script:
+    - docker run -e CI=true ksav/react-test npm run test
+
+after_success:
+    - docker build -t ksav/multi-client ./client
+    - docker build -t ksav/multi-nginx ./nginx
+    - docker build -t ksav/multi-server ./server
+    - docker build -t ksav/multi-worker ./worker
+    - echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_ID" --password-stdin
+    - docker push ksav/multi-client
+    - docker push ksav/multi-nginx
+    - docker push ksav/multi-server
+    - docker push ksav/multi-worker
